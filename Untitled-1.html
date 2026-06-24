@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Animation Workspace</title>
+	<style>
+		:root{--bg:#0f1720;--panel:#111827;--accent:#1e90ff;--surface:#152232;--text:#e2e8f0;--muted:#94a3b8}
+		html,body{height:100%;margin:0;font-family:system-ui,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(180deg,#08101a,#0f1720);color:var(--text)}
+		body{display:flex;align-items:center;justify-content:center;padding:20px}
+		.app{width:min(1200px,100%);min-height:680px;background:radial-gradient(circle at top,#152232 0%,#0f1720 55%);border:1px solid rgba(255,255,255,.08);border-radius:24px;overflow:hidden;display:grid;grid-template-columns:280px 1fr;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+		.sidebar{padding:26px;display:flex;flex-direction:column;gap:20px;background:linear-gradient(180deg,#111827,#111827 75%,#0f1720);border-right:1px solid rgba(255,255,255,.08)}
+		.header{font-size:1.35rem;font-weight:700;letter-spacing:.02em}
+		.description{color:var(--muted);line-height:1.7;font-size:.95rem}
+		.tools{display:grid;gap:12px}
+		.tool{border:1px solid rgba(148,163,184,.18);background:#141d2f;color:var(--text);padding:16px 18px;border-radius:16px;cursor:pointer;transition:transform .24s,background .24s,border-color .24s;display:flex;align-items:center;justify-content:space-between}
+		.tool:hover{transform:translateY(-2px);border-color:rgba(30,144,255,.45)}
+		.tool.active{background:rgba(30,144,255,.16);border-color:rgba(30,144,255,.6)}
+		.tool strong{font-size:1rem}
+		.preview{padding:28px;display:flex;flex-direction:column;gap:18px;position:relative}
+		.preview-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+		.preview-title{font-size:1.1rem;font-weight:700}
+		.status{font-size:.95rem;color:var(--muted)}
+		.stage{flex:1;background:linear-gradient(180deg,rgba(16,25,40,.98),rgba(4,10,20,.9));border:1px solid rgba(255,255,255,.08);border-radius:28px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
+		.shape{width:120px;height:120px;background:linear-gradient(135deg,#1e90ff,#3b82f6);border-radius:22px;display:grid;place-items:center;color:#fff;font-weight:700;letter-spacing:.02em;box-shadow:0 24px 80px rgba(30,144,255,.18);transform:translateX(0)}
+		.controls{display:flex;gap:12px;flex-wrap:wrap}
+		.button{padding:12px 18px;border:none;border-radius:14px;background:var(--surface);color:var(--text);cursor:pointer;transition:transform .24s,background .24s,box-shadow .24s;box-shadow:0 12px 30px rgba(0,0,0,.16)}
+		.button:hover{transform:translateY(-2px);background:rgba(30,144,255,.12)}
+		.button.primary{background:var(--accent);color:#fff;box-shadow:0 18px 40px rgba(30,144,255,.35)}
+		.panel{margin-top:8px;padding:18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:18px}
+		.panel h3{margin:0 0 10px;font-size:1rem;font-weight:700}
+		.panel p{margin:0;color:var(--muted);line-height:1.7;font-size:.95rem}
+		@media(max-width:900px){.app{grid-template-columns:1fr;min-height:auto}.sidebar{border-right:none;border-bottom:1px solid rgba(255,255,255,.06)}}
+	</style>
+</head>
+<body>
+	<div class="app">
+		<aside class="sidebar">
+			<div class="header">Animation Workspace</div>
+			<div class="description">Pick a tool to apply an animation preset, then use the workspace controls to preview, pause, or reset the animation.</div>
+			<div class="tools" id="tools">
+				<button class="tool active" data-tool="move"><strong>Move</strong><span>Slide</span></button>
+				<button class="tool" data-tool="rotate"><strong>Rotate</strong><span>Spin</span></button>
+				<button class="tool" data-tool="scale"><strong>Scale</strong><span>Grow</span></button>
+				<button class="tool" data-tool="pulse"><strong>Pulse</strong><span>Beat</span></button>
+				<button class="tool" data-tool="color"><strong>Color</strong><span>Shift</span></button>
+			</div>
+			<div class="panel">
+				
+				<h3>Tool tips</h3>
+				<p id="toolDescription">Move applies a smooth horizontal slide animation. Use Play to run the selected preset.</p>
+			</div>
+		</aside>
+		<section class="preview">
+			<div class="preview-header">
+				<div>
+					<div class="preview-title">Live preview</div>
+					<div class="status" id="status">Selected: Move</div>
+				</div>
+				<div class="controls">
+					<button class="button primary" id="play">Play</button>
+					<button class="button" id="pause">Pause</button>
+					<button class="button" id="reset">Reset</button>
+				</div>
+			</div>
+			<div class="stage" id="stage">
+				<div class="shape" id="shape">Animate</div>
+			</div>
+			<div class="panel">
+				<h3>Workspace tools</h3>
+				<p>Each tool activates a unique animation preset using the Web Animations API. This workspace is designed to handle multiple animation tools and live preview behavior.</p>
+			</div>
+		</section>
+	</div>
+	<script>
+		const tools = document.querySelectorAll('.tool');
+		const status = document.getElementById('status');
+		const toolDescription = document.getElementById('toolDescription');
+		const shape = document.getElementById('shape');
+		const play = document.getElementById('play');
+		const pause = document.getElementById('pause');
+		const reset = document.getElementById('reset');
+
+		const animations = {
+			move: {
+				desc: 'Move applies a smooth horizontal slide animation.',
+				keyframes: [
+					{transform:'translateX(0) rotate(0deg) scale(1)'},
+					{transform:'translateX(180px) rotate(0deg) scale(1)'},
+					{transform:'translateX(0) rotate(0deg) scale(1)'}
+				],
+				options:{duration:1500,iterations:2,easing:'ease-in-out'}
+			},
+			rotate:{
+				desc:'Rotate spins the object around its center with a lively motion.',
+				keyframes:[
+					{transform:'translateX(0) rotate(0deg) scale(1)'},
+					{transform:'translateX(0) rotate(360deg) scale(1)'}
+				],
+				options:{duration:1200,iterations:2,easing:'cubic-bezier(.35,.1,.75,1)'}
+			},
+			scale:{
+				desc:'Scale enlarges and shrinks the object for a bounce effect.',
+				keyframes:[
+					{transform:'translateX(0) rotate(0deg) scale(1)'},
+					{transform:'translateX(0) rotate(0deg) scale(1.5)'},
+					{transform:'translateX(0) rotate(0deg) scale(1)'}
+				],
+				options:{duration:1000,iterations:3,easing:'ease-in-out'}
+			},
+			pulse:{
+				desc:'Pulse creates a subtle heartbeat animation with softness and rhythm.',
+				keyframes:[
+					{transform:'translateX(0) rotate(0deg) scale(1)',boxShadow:'0 24px 80px rgba(30,144,255,.18)'},
+					{transform:'translateX(0) rotate(0deg) scale(1.08)',boxShadow:'0 28px 96px rgba(30,144,255,.28)'},
+					{transform:'translateX(0) rotate(0deg) scale(1)',boxShadow:'0 24px 80px rgba(30,144,255,.18)'}
+				],
+				options:{duration:1000,iterations:4,easing:'ease-in-out'}
+			},
+			color:{
+				desc:'Color shifts the hue and brightness of the object for a dynamic visual effect.',
+				keyframes:[
+					{background:'linear-gradient(135deg,#1e90ff,#3b82f6)'},
+					{background:'linear-gradient(135deg,#a855f7,#ec4899)'},
+					{background:'linear-gradient(135deg,#1e90ff,#3b82f6)'}
+				],
+				options:{duration:1300,iterations:2,easing:'ease'}
+			}
+		};
+
+		let currentTool='move';
+		let currentAnimation=null;
+
+		function setActiveTool(name){
+			currentTool=name;
+			tools.forEach(button=>button.classList.toggle('active',button.dataset.tool===name));
+			status.textContent='Selected: '+name.charAt(0).toUpperCase()+name.slice(1);
+			toolDescription.textContent=animations[name].desc;
+			resetAnimation();
+		}
+
+		function resetAnimation(){
+			if(currentAnimation){currentAnimation.cancel();currentAnimation=null}
+			shape.style.transform='translateX(0) rotate(0deg) scale(1)';
+			shape.style.background='linear-gradient(135deg,#1e90ff,#3b82f6)';
+			shape.style.boxShadow='0 24px 80px rgba(30,144,255,.18)';
+		}
+
+		function playAnimation(){
+			if(currentAnimation){currentAnimation.cancel()}
+			currentAnimation=shape.animate(animations[currentTool].keyframes,animations[currentTool].options);
+		}
+
+		tools.forEach(tool=>tool.addEventListener('click',()=>setActiveTool(tool.dataset.tool)));
+		play.addEventListener('click',playAnimation);
+		pause.addEventListener('click',()=>{if(currentAnimation)currentAnimation.pause()});
+		reset.addEventListener('click',resetAnimation);
+		setActiveTool(currentTool);
+		function newframe(){
+			console.log("new frame created");
+			addFrame();
+			frame =frame + 1;
+			tools = [pencil,eraser,fill,select,pose,line,circle,rect,text];
+
+
+		}
+	</script>
+</body>
+</html>

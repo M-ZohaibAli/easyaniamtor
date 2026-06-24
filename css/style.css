@@ -1,0 +1,51 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; background: #0f1720; color: #e2e8f0; }
+
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+#header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #111827; border-bottom: 1px solid rgba(255,255,255,.08); }
+.logo { font-size: 1.3rem; font-weight: 700; background: linear-gradient(135deg,#1e90ff,#a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header-controls { display: flex; align-items: center; gap: 12px; }
+.header-controls label { font-size: .85rem; color: #94a3b8; }
+.header-controls input[type=number] { width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,.1); background: #1e293b; color: #e2e8f0; text-align: center; }
+.header-controls button { padding: 6px 16px; border: none; border-radius: 8px; background: #1e293b; color: #e2e8f0; cursor: pointer; font-size: .85rem; transition: background .15s; }
+.header-controls button:hover { background: #334155; }
+.header-controls button#playBtn { background: #1e90ff; color: #fff; }
+.header-controls button#playBtn:hover { background: #3b82f6; }
+
+#main { flex: 1; display: flex; overflow: hidden; }
+
+#toolbar { display: flex; flex-direction: column; padding: 8px; gap: 4px; background: #111827; border-right: 1px solid rgba(255,255,255,.08); }
+.tool-btn { width: 40px; height: 40px; border: none; border-radius: 8px; background: transparent; color: #94a3b8; cursor: pointer; font-size: 1.1rem; display: grid; place-items: center; transition: background .15s, color .15s; }
+.tool-btn:hover { background: #1e293b; color: #e2e8f0; }
+.tool-btn.active { background: rgba(30,144,255,.2); color: #1e90ff; }
+
+#canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; background: #0a0f16; position: relative; }
+#stage { width: min(800px,calc(100vw - 300px)); height: min(500px,calc(100vh - 180px)); background: #141d2f; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; cursor: crosshair; }
+
+#properties { width: 200px; padding: 16px; background: #111827; border-left: 1px solid rgba(255,255,255,.08); overflow-y: auto; }
+#properties h3 { font-size: .9rem; margin-bottom: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+.prop-group { margin-bottom: 12px; }
+.prop-group label { display: block; font-size: .8rem; color: #94a3b8; margin-bottom: 4px; }
+.prop-group input[type=color] { width: 100%; height: 32px; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; background: #1e293b; cursor: pointer; }
+.prop-group input[type=range] { width: 100%; accent-color: #1e90ff; }
+.prop-group input[type=checkbox] { margin-right: 6px; accent-color: #1e90ff; }
+hr { border: none; border-top: 1px solid rgba(255,255,255,.06); margin: 12px 0; }
+
+#timeline { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #111827; border-top: 1px solid rgba(255,255,255,.08); }
+.timeline-controls { display: flex; gap: 6px; }
+.timeline-controls button { padding: 5px 12px; border: none; border-radius: 6px; background: #1e293b; color: #e2e8f0; cursor: pointer; font-size: .8rem; transition: background .15s; }
+.timeline-controls button:hover { background: #334155; }
+.timeline-controls button#delFrameBtn { color: #ef4444; }
+#frameStrip { flex: 1; display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; }
+.frame-thumb { width: 64px; height: 48px; border: 2px solid transparent; border-radius: 6px; background: #1e293b; cursor: pointer; flex-shrink: 0; background-size: cover; background-position: center; transition: border-color .15s; }
+.frame-thumb:hover { border-color: #475569; }
+.frame-thumb.active { border-color: #1e90ff; }
+#frameIndicator { font-size: .8rem; color: #94a3b8; white-space: nowrap; }
+
+#frameStrip::-webkit-scrollbar { height: 4px; }
+#frameStrip::-webkit-scrollbar-track { background: transparent; }
+#frameStrip::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+#toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); padding: 8px 20px; border-radius: 8px; background: #1e293b; color: #e2e8f0; font-size: .85rem; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 100; }
+#toast.show { opacity: 1; }
