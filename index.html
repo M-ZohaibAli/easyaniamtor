@@ -2,70 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>EasyAnimation</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div id="app">
-    <div id="header">
-      <span class="logo">EasyAnimation</span>
-      <div class="header-controls">
-        <label>FPS: <input type="number" id="fpsInput" value="12" min="1" max="60" /></label>
-        <button id="playBtn">Play</button>
-        <button id="pauseBtn">Pause</button>
-        <button id="resetBtn">Reset</button>
-      </div>
-    </div>
-    <div id="main">
-      <div id="toolbar">
-        <button class="tool-btn active" data-tool="pose" title="Pose Stickman">&#x1F9CD;</button>
-        <button class="tool-btn" data-tool="select" title="Select">&#x1F4CB;</button>
-        <button class="tool-btn" data-tool="pencil" title="Pencil">&#x270F;</button>
-        <button class="tool-btn" data-tool="line" title="Line">&#x2571;</button>
-        <button class="tool-btn" data-tool="circle" title="Circle">&#x25CB;</button>
-        <button class="tool-btn" data-tool="rect" title="Rectangle">&#x25A1;</button>
-        <button class="tool-btn" data-tool="eraser" title="Eraser">&#x2B1B;</button>
-        <button class="tool-btn" data-tool="fill" title="Fill">&#x2B1C;</button>
-      </div>
-      <div id="canvas-wrap">
-        <canvas id="stage"></canvas>
-      </div>
-      <div id="properties">
-        <h3>Properties</h3>
-        <div class="prop-group">
-          <label>Stroke <input type="color" id="strokeColor" value="#ffffff" /></label>
-        </div>
-        <div class="prop-group">
-          <label>Fill <input type="color" id="fillColor" value="#1e90ff" /></label>
-        </div>
-        <div class="prop-group">
-          <label>Size <input type="range" id="lineWidth" min="1" max="20" value="3" /></label>
-        </div>
-        <hr />
-        <div class="prop-group">
-          <label><input type="checkbox" id="showStickman" checked /> Show Stickman</label>
-        </div>
-        <div class="prop-group">
-          <label><input type="checkbox" id="onionSkin" /> Onion Skin</label>
-        </div>
-      </div>
-    </div>
-    <div id="timeline">
-      <div class="timeline-controls">
-        <button id="addFrameBtn">+ Frame</button>
-        <button id="dupFrameBtn">Duplicate</button>
-        <button id="delFrameBtn">Delete</button>
-      </div>
-      <div id="frameStrip"></div>
-      <span id="frameIndicator">Frame: 1/1</span>
-    </div>
-  </div>
+  <div id="app"></div>
   <div id="toast"></div>
-  <script src="js/stickman.js"></script>
+  <div id="modal-overlay" class="hidden"></div>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+  <script src="js/project-store.js"></script>
+  <script src="js/screen-manager.js"></script>
+  <script src="js/sprite-library.js"></script>
+  <script src="js/layers.js"></script>
+  <script src="js/undo-manager.js"></script>
   <script src="js/tools.js"></script>
+  <script src="js/text-tool.js"></script>
   <script src="js/timeline.js"></script>
-  <script src="js/engine.js"></script>
+  <script src="js/canvas-engine.js"></script>
+  <script src="js/exporter.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

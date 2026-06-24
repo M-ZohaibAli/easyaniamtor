@@ -1,78 +1,88 @@
-const TOOLS = ['pose','select','pencil','line','circle','rect','eraser','fill']
-let currentTool = 'pose'
+const TOOLS = ['select', 'pencil', 'line', 'circle', 'rect', 'eraser', 'fill', 'text']
+let currentTool = 'pencil'
 let currentStroke = null
 let isDrawing = false
-let isDraggingJoint = false
-let currentJoint = null
-let selectedStroke = null
+let isDraggingSprite = false
+let dragSpriteKey = null
+let dragOffset = null
 
 function createStroke(type, x, y, color, width) {
-  return { type, points: [{x,y}], color, width, fillColor: document.getElementById('fillColor').value || null }
+  return { type, points: [{x,y}], color, width, fillColor: document.getElementById('fillColor') ? document.getElementById('fillColor').value : null }
 }
 
 function onPointerDown(e) {
   const rect = stage.getBoundingClientRect()
-  const scaleX = CANVAS_W / rect.width
-  const scaleY = CANVAS_H / rect.height
+  const scaleX = project.width / rect.width
+  const scaleY = project.height / rect.height
   const x = (e.clientX - rect.left) * scaleX
   const y = (e.clientY - rect.top) * scaleY
 
   const frame = project.frames[project.currentFrame]
   if (!frame) return
 
-  if (currentTool === 'pose') {
-    const hit = hitTestJoint(frame.stickman, x, y)
-    if (hit) {
-      currentJoint = hit
-      isDraggingJoint = true
-      stage.style.cursor = 'grabbing'
+  if (currentTool === 'text') {
+    onTextPointerDown(x, y)
+    return
+  }
+
+  if (currentTool === 'select') {
+    for (const layer of frame.layers) {
+      if (!layer.visible) continue
+      for (const si of layer.sprites) {
+        const dx = x - si.x, dy = y - si.y
+        const size = Math.abs(si.scaleX || 1) * 20
+        if (dx * dx + dy * dy < size * size) {
+          isDraggingSprite = true
+          dragSpriteKey = si.spriteId + '_' + layer.id
+          dragOffset = { x: x - si.x, y: y - si.y }
+          return
+        }
+      }
     }
     return
   }
 
   isDrawing = true
-  const sColor = document.getElementById('strokeColor').value
-  const w = parseInt(document.getElementById('lineWidth').value)
+  const sColor = document.getElementById('strokeColor') ? document.getElementById('strokeColor').value : '#ffffff'
+  const w = parseInt((document.getElementById('lineWidth') && document.getElementById('lineWidth').value) || '3')
   currentStroke = createStroke(currentTool, x, y, sColor, w)
 
   if (currentTool === 'fill') {
-    floodFill(frame, x, y, document.getElementById('fillColor').value)
-    currentStroke = null
-    isDrawing = false
-    render()
-    renderFrameThumbs()
+    floodFill(frame, x, y, document.getElementById('fillColor') ? document.getElementById('fillColor').value : '#1e90ff')
+    currentStroke = null; isDrawing = false
+    render(); renderFrameThumbs()
     return
   }
 
-  frame.strokes.push(currentStroke)
+  const layer = getActiveLayer(frame)
+  layer.strokes.push(currentStroke)
 }
 
 function onPointerMove(e) {
   const rect = stage.getBoundingClientRect()
-  const scaleX = CANVAS_W / rect.width
-  const scaleY = CANVAS_H / rect.height
+  const scaleX = project.width / rect.width
+  const scaleY = project.height / rect.height
   const x = (e.clientX - rect.left) * scaleX
   const y = (e.clientY - rect.top) * scaleY
 
   const frame = project.frames[project.currentFrame]
   if (!frame) return
 
-  if (isDraggingJoint && currentJoint) {
-    const parts = frame.stickman
-    const pos = computeJointPositions(parts)
-    const parentName = parts[currentJoint].parent
-    const parentPos = parentName ? pos[parentName] : { x: parts[currentJoint].x, y: parts[currentJoint].y }
-    const dx = x - parentPos.x
-    const dy = parentPos.y - y
-    let angle = Math.atan2(dy, dx) * 180 / Math.PI
-    if (angle < 0) angle += 360
-    parts[currentJoint].angle = Math.round(angle)
-    render()
+  if (isDraggingSprite) {
+    for (const layer of frame.layers) {
+      for (const si of layer.sprites) {
+        const key = si.spriteId + '_' + layer.id
+        if (key === dragSpriteKey) {
+          si.x = x - dragOffset.x
+          si.y = y - dragOffset.y
+          render(); return
+        }
+      }
+    }
     return
   }
 
   if (!isDrawing || !currentStroke) return
-
   if (currentTool === 'pencil' || currentTool === 'eraser') {
     currentStroke.points.push({x, y})
   } else {
@@ -82,23 +92,18 @@ function onPointerMove(e) {
 }
 
 function onPointerUp() {
-  if (isDraggingJoint) {
-    isDraggingJoint = false
-    currentJoint = null
-    stage.style.cursor = currentTool === 'pose' ? 'grab' : 'crosshair'
-    renderFrameThumbs()
-    return
-  }
+  if (isDraggingSprite) { isDraggingSprite = false; dragSpriteKey = null; renderFrameThumbs(); return }
   if (!isDrawing) return
   isDrawing = false
   if (currentStroke && currentStroke.points.length < 2 && currentTool !== 'fill' && currentTool !== 'pencil' && currentTool !== 'eraser') {
     const frame = project.frames[project.currentFrame]
     if (frame) {
-      const idx = frame.strokes.indexOf(currentStroke)
-      if (idx !== -1) frame.strokes.splice(idx, 1)
+      for (const layer of frame.layers) {
+        const idx = layer.strokes.indexOf(currentStroke)
+        if (idx !== -1) { layer.strokes.splice(idx, 1); break }
+      }
     }
   }
   currentStroke = null
-  renderFrameThumbs()
-  render()
+  renderFrameThumbs(); render()
 }
