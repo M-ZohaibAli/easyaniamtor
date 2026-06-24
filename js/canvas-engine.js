@@ -8,14 +8,22 @@ let panStart = { x: 0, y: 0 }
 let gridVisible = false
 let _floodCanvas = null
 
-const stage = document.getElementById('stage')
-const ctx = stage.getContext('2d')
+let stage = null
+let ctx = null
+
+function getStage() {
+  if (!stage) {
+    stage = document.getElementById('stage')
+    if (stage) ctx = stage.getContext('2d')
+  }
+  return stage
+}
 
 function resizeCanvas(w, h) {
   CANVAS_W = w
   CANVAS_H = h
-  stage.width = w
-  stage.height = h
+  const s = getStage()
+  if (s) { s.width = w; s.height = h }
 }
 
 function getFloodCanvas() {
@@ -28,7 +36,9 @@ function getFloodCanvas() {
 }
 
 function render() {
-  ctx.clearRect(0, 0, stage.width, stage.height)
+  const s = getStage()
+  if (!s || !ctx) return
+  ctx.clearRect(0, 0, s.width, s.height)
   ctx.save()
   ctx.translate(panX, panY)
   ctx.scale(zoom, zoom)
@@ -38,7 +48,6 @@ function render() {
   const frame = project.frames[project.currentFrame]
   if (!frame) { ctx.restore(); return }
 
-  // Onion skin
   if (document.getElementById('onionSkin') && document.getElementById('onionSkin').checked && project.currentFrame > 0) {
     const prev = project.frames[project.currentFrame - 1]
     ctx.save()
@@ -148,22 +157,24 @@ function floodFill(frame, startX, startY, color) {
 }
 
 function setupCanvasControls() {
-  stage.addEventListener('wheel', e => {
+  const s = getStage()
+  if (!s) return
+  s.addEventListener('wheel', e => {
     e.preventDefault()
     const delta = e.deltaY > 0 ? 0.9 : 1.1
     zoom = Math.max(0.1, Math.min(5, zoom * delta))
     render()
   }, { passive: false })
 
-  stage.addEventListener('pointerdown', e => {
+  s.addEventListener('pointerdown', e => {
     if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
       isPanning = true
       panStart = { x: e.clientX - panX, y: e.clientY - panY }
-      stage.style.cursor = 'grabbing'
+      s.style.cursor = 'grabbing'
     }
   })
 
-  stage.addEventListener('pointermove', e => {
+  s.addEventListener('pointermove', e => {
     if (isPanning) {
       panX = e.clientX - panStart.x
       panY = e.clientY - panStart.y
@@ -171,7 +182,7 @@ function setupCanvasControls() {
     }
   })
 
-  stage.addEventListener('pointerup', () => {
-    if (isPanning) { isPanning = false; stage.style.cursor = 'crosshair' }
+  s.addEventListener('pointerup', () => {
+    if (isPanning) { isPanning = false; s.style.cursor = 'crosshair' }
   })
 }
